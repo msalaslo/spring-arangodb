@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.Spliterators;
 import java.util.stream.StreamSupport;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.ComponentScan;
@@ -16,6 +18,8 @@ import com.msl.data.arangodb.got.repository.CharacterRepository;
 
 @ComponentScan("com.msl.data.arangodb.got")
 public class CrudRunner implements CommandLineRunner {
+	
+	private static final Logger logger = LoggerFactory.getLogger(CrudRunner.class.getName());
 
 	@Autowired
 	private ArangoOperations operations;
@@ -32,30 +36,29 @@ public class CrudRunner implements CommandLineRunner {
 	    final Character nedStark = new Character("Ned", "Stark", true, 41);
 	    repository.save(nedStark);
 	    // the generated id from the database is set in the original entity
-	    System.out.println(String.format("Ned Stark saved in the database with id: '%s'", nedStark.getId()));
+	    logger.debug(String.format("Ned Stark saved in the database with id: '%s'", nedStark.getId()));
 	 
 	    // lets take a look whether we can find Ned Stark in the database
 	    final Character foundNed = repository.findOne(nedStark.getId());
-	    System.out.println(String.format("Found %s", foundNed));
+	    logger.debug(String.format("Found %s", foundNed));
 	    
 	    nedStark.setAlive(false);
 	    repository.save(nedStark);
 	    final Character deadNed = repository.findOne(nedStark.getId());
-	    System.out.println(String.format("The 'alive' flag of the persisted Ned Stark is now '%s'", deadNed.isAlive()));
+	    logger.debug(String.format("The 'alive' flag of the persisted Ned Stark is now '%s'", deadNed.isAlive()));
 	    
 	    Collection<Character> createCharacters = createCharacters();
-	    System.out.println(String.format("Save %s additional chracters", createCharacters.size()));
+	    logger.debug(String.format("Save %s additional chracters", createCharacters.size()));
 	    repository.save(createCharacters);
 	     
 	    Iterable<Character> all = repository.findAll();
 	    long count = StreamSupport.stream(Spliterators.spliteratorUnknownSize(all.iterator(), 0), false).count();
-	    System.out.println(String.format("A total of %s characters are persisted in the database", count));
+	    logger.debug(String.format("A total of %s characters are persisted in the database", count));
 	    
 	    printAllCharsByName(repository);
 	}
 	
 	public static void printAllCharsByName(CharacterRepository repository) {
-		System.out.println("## Return all characters sorted by name");
 		Iterable<Character> allSorted = repository.findAll(new Sort(new Sort.Order(Sort.Direction.ASC, "name")));
 		allSorted.forEach(System.out::println);
 	}

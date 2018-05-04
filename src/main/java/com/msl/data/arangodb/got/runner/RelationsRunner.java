@@ -2,6 +2,8 @@ package com.msl.data.arangodb.got.runner;
 
 import java.util.Arrays;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 
@@ -11,6 +13,8 @@ import com.msl.data.arangodb.got.repository.CharacterRepository;
 import com.msl.data.arangodb.got.repository.ChildOfRepository;
 
 public class RelationsRunner implements CommandLineRunner {
+	
+	private static final Logger logger = LoggerFactory.getLogger(RelationsRunner.class.getName());
 
 	@Autowired
 	private CharacterRepository characterRepo;
@@ -19,7 +23,7 @@ public class RelationsRunner implements CommandLineRunner {
 
 	@Override
 	public void run(final String... args) throws Exception {
-		System.out.println("# Relations");
+		logger.debug("# Relations");
 		characterRepo.save(CrudRunner.createCharacters());
 
 		// first create some relations for the Starks and Lannisters
@@ -57,17 +61,19 @@ public class RelationsRunner implements CommandLineRunner {
 		});
 
 		characterRepo.findByNameAndSurname("Ned", "Stark").ifPresent(nedStark -> {
-			System.out.println(String.format("## These are the children of %s:", nedStark));
+			logger.debug(String.format("## These are the children of %s:", nedStark));
 			nedStark.getChilds().forEach(System.out::println);
 		});
 
-		System.out.println("## These are the parents of 'Sansa'");
+		logger.debug("## These are the parents of 'Sansa'");
 		Iterable<Character> parentsOfSansa = characterRepo.findByChildsName("Sansa");
-		parentsOfSansa.forEach(System.out::println);
+		parentsOfSansa.forEach(item -> logger.debug(item.toString()));
 
-		System.out.println("## These parents have a child which is between 16 and 20 years old");
+
+		logger.debug("## These parents have a child which is between 16 and 20 years old");
 		Iterable<Character> childsBetween16a20 = characterRepo.findByChildsAgeBetween(16, 20);
-		childsBetween16a20.forEach(System.out::println);
+		childsBetween16a20.forEach(item -> logger.debug(item.toString()));
+
 	}
 
 }
